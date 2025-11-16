@@ -1,6 +1,7 @@
-import { Controller, Post, Body, ValidationPipe, UsePipes, HttpCode } from '@nestjs/common';
+import { Controller, Post, Body, UsePipes, HttpCode, ValidationPipe, Get, UseGuards, Req, NotFoundException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @Controller('user')
 export class UsersController {
@@ -15,5 +16,22 @@ export class UsersController {
       return { message: 'User registered successfully', userId: user._id };
    
       // Khi service ném ConflictException, NestJS sẽ tự động bắt
+  }
+  @Get('profile')
+  @UseGuards(JwtAuthGuard)
+  async getProfile(@Req() req) {
+    const user = await this.usersService.findOneByEmail(req.user.email);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const userObject = user.toObject();
+
+    return {
+      _id: user.id,
+      email: user.email,
+      name: userObject.name ?? null,
+      createdAt: user.createdAt,
+    };
   }
 }

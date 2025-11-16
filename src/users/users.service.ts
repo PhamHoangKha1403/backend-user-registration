@@ -21,4 +21,7 @@ export class UsersService {
     const user = new this.userModel({ email, password: hashedPassword });
     return user.save();
   }
+  async findOneByEmail(email: string): Promise<User | null> {
+    return this.userModel.findOne({ email }).exec();
+  }
 }
